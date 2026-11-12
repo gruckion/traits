@@ -2,7 +2,7 @@
 name: wildcard-reexports-in-subsystem-barrels
 subject: TypeScript subsystem barrel modules intended to expose their
   constituent modules' complete public APIs.
-requirement: Use export * from declarations for constituent modules rather than
+assertion: Use export * from declarations for constituent modules rather than
   enumerating individual symbols. Preserve intentionally selective exports when
   a barrel is meant to restrict its API, and resolve name collisions explicitly
   rather than introducing ambiguous wildcard exports.

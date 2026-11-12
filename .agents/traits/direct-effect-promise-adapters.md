@@ -1,13 +1,13 @@
 ---
 name: direct-effect-promise-adapters
-purpose: Make asynchronous boundaries explicit without wrappers that add indirection but no behavior.
-subject: Adapters from Promise-returning operations to Effect.
-requirement: "Use `Effect.promise` directly at Promise boundaries instead of
+subject: Adapters from Promise-returning operations to Effect. In TypeScript or
+  TSX files.
+assertion: "Use `Effect.promise` directly at Promise boundaries instead of
   introducing generic wrapper helpers: `Effect.promise(() => client.run())`, not
   `fromPromise(() => client.run())` where `fromPromise` merely wraps
   `Effect.promise`."
-applicability: |-
-  File types or languages: text/typescript, text/tsx.
+purpose: Make asynchronous boundaries explicit without wrappers that add
+  indirection but no behavior.
 ---
 ```diff
 -const result = fromPromise(() => client.run()) // Helper only wraps Effect.promise.

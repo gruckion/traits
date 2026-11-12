@@ -1,0 +1,13 @@
+{
+  "version": "0.5.14",
+  "models": {
+    "language": {
+      "provider": "openrouter",
+      "model": "openai/gpt-6.1-sol"
+    },
+    "decision": {
+      "provider": "openrouter",
+      "model": "liquid/d1-ultra"
+    }
+  }
+}

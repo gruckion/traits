@@ -1,13 +1,12 @@
 ---
 name: effect-foreach-for-collection-results
-purpose: Express effectful traversal and result collection together with visible ordering and concurrency semantics.
-subject: Effectful collection traversals that collect results.
-requirement: When traversing a collection to perform Effects and collect
-  results, prefer Effect.forEach over a for loop that pushes into a mutable
-  accumulator array. Preserve intended ordering, filtering, and concurrency
-  semantics.
-applicability: |-
-  File types or languages: text/typescript, text/tsx.
+subject: Effectful collection traversals that collect results. In TypeScript or
+  TSX files.
+assertion: When traversing a collection to perform Effects and collect results,
+  prefer Effect.forEach over a for loop that pushes into a mutable accumulator
+  array. Preserve intended ordering, filtering, and concurrency semantics.
+purpose: Express effectful traversal and result collection together with visible
+  ordering and concurrency semantics.
 ---
 ```diff
 -const results = []

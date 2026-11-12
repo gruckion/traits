@@ -1,7 +1,7 @@
 ---
 name: centralize-workspace-dependency-constraints
 subject: Dependency version declarations in pnpm workspaces that use catalogs.
-requirement: "Define shared dependency version constraints in the workspace
+assertion: "Define shared dependency version constraints in the workspace
   catalog and reference them with catalog: in package manifests rather than
   duplicating literal version specifications. Preserve intentionally different
   constraints using named catalogs or explicit package-specific exceptions."

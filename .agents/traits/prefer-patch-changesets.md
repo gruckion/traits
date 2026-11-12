@@ -1,12 +1,11 @@
 ---
 name: prefer-patch-changesets
-purpose: Keep routine release increments conservative and reserve larger increments for justified changes.
-subject: Changesets and release increment selection.
-requirement: Prefer patch changesets by default. Use a minor changeset only when
+subject: Changesets and release increment selection. Applies when authoring
+  changesets or choosing a release increment. In Markdown files.
+assertion: Prefer patch changesets by default. Use a minor changeset only when
   there is a compelling reason for a minor release.
-applicability: |-
-  Applies when authoring changesets or choosing a release increment.
-  File types or languages: text/markdown.
+purpose: Keep routine release increments conservative and reserve larger
+  increments for justified changes.
 ---
 ```diff
  ---

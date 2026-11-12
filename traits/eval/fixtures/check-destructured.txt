@@ -1,0 +1,92 @@
+import { Console, Effect, Option, pipe, Runtime, Schema as S } from "effect"
+import { Argument, Command, Flag } from "effect/cli"
+
+import { DecisionPolicy } from "../../../Report/DecisionPolicy.ts"
+import { Report, verdicts } from "../../../Report/Report.ts"
+import { Verdict } from "../../../Report/Verdict.ts"
+import { TraitName } from "../../../TraitName.ts"
+import { Probability } from "../../../util/index.ts"
+import { WorkspaceCheck } from "../../../WorkspaceCheck.ts"
+import { EnvironmentName } from "../../../WorkspaceTraits.ts"
+
+/** Exit codes for each verdict, so CI can block on violations and retry incomplete checks. */
+const exitCodes = { Pass: 0, Fail: 1, Incomplete: 2, Inconclusive: 3 } as const
+
+/** The check could not run; exits like an Incomplete verdict, since the fix is to repair the setup and retry. Its message is already reported on stderr. */
+export class CheckError extends S.TaggedError<CheckError>()("CheckError", {
+  /** What prevented the check, and how to fix it. */
+  message: S.String.annotateKey({ description: "What prevented the check, and how to fix it." })
+}) {
+  override readonly [Runtime.errorExitCode] = exitCodes.Incomplete
+  override readonly [Runtime.errorReported] = false
+}
+
+/** Ends the command with the verdict's exit code; the verdict is already reported on stderr. */
+export class VerdictExit extends S.TaggedError<VerdictExit>()("VerdictExit", { verdict: Verdict }) {
+  override readonly [Runtime.errorExitCode] = exitCodes[this.verdict]
+  override readonly [Runtime.errorReported] = false
+}
+
+const threshold = (name: string, description: string) =>
+  Flag.Finite(name).pipe(Flag.withSchema(Probability), Flag.withDescription(description), Flag.optional)
+
+/** Checks files against the current directory's workspace traits, prints the report as JSON, and exits with the verdict when given a policy. */
+export const check = Command.make(
+  "check",
+  {
+    paths: Argument.String("paths").pipe(
+      Argument.withDescription("Files to check, relative to the workspace root"),
+      Argument.atLeast(1)
+    ),
+    traits: Flag.String("trait").pipe(
+      Flag.withSchema(TraitName),
+      Flag.withDescription("Check only this trait, within the environment when one is given; repeat to select several"),
+      Flag.atLeast(0)
+    ),
+    environment: Flag.String("environment").pipe(
+      Flag.withSchema(EnvironmentName),
+      Flag.withAlias("e"),
+      Flag.withDescription(
+        "Check only the traits in .agents/traits/_environments/<name>.json; every trait when omitted"
+      ),
+      Flag.optional
+    ),
+    fail: threshold("fail", "Minimum fail probability that rejects an assessment; requires --pass"),
+    pass: threshold("pass", "Minimum pass probability that accepts an assessment; requires --fail"),
+    na: threshold("na", "Minimum not-applicable probability that accepts an assessment; never accepted when omitted")
+  },
+  Effect.fn("check")(
+    function* (params) {
+      const fail = Option.getOrUndefined(params.fail)
+      const pass = Option.getOrUndefined(params.pass)
+      const na = Option.getOrUndefined(params.na)
+      if ((fail === undefined) !== (pass === undefined) || (na !== undefined && fail === undefined)) {
+        return yield* CheckError.make({ message: "Pass both --fail and --pass to apply a decision policy." })
+      }
+      const workspace = yield* WorkspaceCheck
+      const report = yield* workspace
+        .check({
+          paths: params.paths,
+          ...(Option.isSome(params.environment) ? { environment: params.environment.value } : {}),
+          ...(params.traits.length > 0 ? { traits: params.traits } : {})
+        })
+        .pipe(Effect.mapError(({ message }) => CheckError.make({ message })))
+      const encoded = yield* pipe(report, S.encodeEffect(Report), Effect.orDie)
+      yield* Console.log(JSON.stringify(encoded, null, 2))
+      if (fail === undefined || pass === undefined) {
+        return
+      }
+      const policy = DecisionPolicy.make({ fail, pass, ...(na === undefined ? {} : { na }) })
+      const { verdict } = verdicts(report, policy)
+      yield* Console.error(`Verdict: ${verdict}`)
+      if (verdict !== "Pass") {
+        return yield* VerdictExit.make({ verdict })
+      }
+    },
+    Effect.tapError((error) => (error._tag === "CheckError" ? Console.error(error.message) : Effect.void))
+  )
+).pipe(
+  Command.withDescription(
+    "Check files against this workspace's traits and print the report as JSON. With --fail and --pass, print the verdict to stderr and exit 0 for Pass, 1 for Fail, 2 for Incomplete or a check that could not run, and 3 for Inconclusive; invalid command-line usage also exits 1."
+  )
+)

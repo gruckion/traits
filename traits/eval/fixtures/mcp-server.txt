@@ -1,0 +1,18 @@
+import { Layer } from "effect"
+import { McpProtocol, McpServer, Toolkit } from "effect/ai"
+
+import PackageJson from "../package.json" with { type: "json" }
+import * as TraitsCheck from "./TraitsCheck.ts"
+import * as TraitsDerive from "./TraitsDerive.ts"
+
+/** The traits MCP server over stdio, registering its tools before it reads its first request; the host provides the WorkspaceCheck its tools use. */
+export const layer = McpServer.layerStdio({
+  name: "traits",
+  version: PackageJson.version,
+  protocols: [McpProtocol.v2025_11_25],
+  instructions:
+    "Call traits.derive whenever user feedback may contain a generalizable insight worth applying to future code generation and conversations. Call traits.check on the files you changed after editing them and before finishing a task.",
+  registrations: McpServer.toolkit(Toolkit.merge(TraitsDerive.toolkit, TraitsCheck.toolkit)).pipe(
+    Layer.provide(Layer.mergeAll(TraitsDerive.layer, TraitsCheck.layer))
+  )
+})

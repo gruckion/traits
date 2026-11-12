@@ -1,24 +1,16 @@
 #!/usr/bin/env node
 import { NodeRuntime, NodeServices } from "@effect/platform-node"
-import { Cause, Console, Effect, Logger, Runtime } from "effect"
-import { Command } from "effect/cli"
-import { Reactivity } from "effect/reactivity"
+import { Cause, Console, Effect, Runtime } from "effect"
 
-import * as Mcp from "./commands/mcp.ts"
-import { reflection } from "./commands/reflection.ts"
-import * as Run from "./commands/run.ts"
-import PackageJson from "./package.json" with { type: "json" }
+import { Cli } from "./Cli/Cli.ts"
 
-Command.make("traits").pipe(
-  Command.withDescription("Run the Traits MCP server or inspect worktree telemetry"),
-  Command.withHandler(() => Mcp.serve),
-  Command.withSubcommands([Mcp.mcp, Run.run, reflection]),
-  Command.run({ version: PackageJson.version }),
-  Effect.provide([NodeServices.layer, Reactivity.layer, Logger.layer([Logger.withConsoleError(Logger.formatSimple)])]),
+// Reports errors on stderr, so stdout carries only command output such as reports and MCP messages.
+Cli.pipe(
   Effect.tapCause((cause) =>
     Cause.hasInterruptsOnly(cause) || !Runtime.getErrorReported(Cause.squash(cause))
       ? Effect.void
       : Console.error(Cause.pretty(cause))
   ),
-  NodeRuntime.runMain({ disableErrorReporting: true })
+  Effect.provide(NodeServices.layer),
+  (effect) => NodeRuntime.runMain(effect, { disableErrorReporting: true })
 )

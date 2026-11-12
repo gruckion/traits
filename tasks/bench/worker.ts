@@ -23,8 +23,8 @@ import {
 import { DecisionModel, LanguageModel } from "effect/ai"
 import { Reactivity } from "effect/reactivity"
 import { Bench } from "tinybench"
-import type * as TraitTypes from "traits/Trait"
-import type { TraitStore } from "traits/TraitStore"
+import type * as TraitTypes from "traits-prev/Trait"
+import type { TraitStore } from "traits-prev/TraitStore"
 
 import * as Model from "./model.ts"
 
@@ -58,7 +58,11 @@ const output = await Effect.runPromise(
       .readFileString(path.join(options.fixture, "expected.json"))
       .pipe(Effect.flatMap(S.decodeUnknownEffect(S.fromJsonString(Model.Fixture))))
     // Module paths point to trusted Git checkouts. Main's layer is a factory; head's is a value.
-    const importModule = <A>(file: string): Promise<A> => import(pathToFileURL(path.join(options.source, file)).href)
+    // Revisions before the rename keep the legacy package in traits/ rather than traits-prev/.
+    const renamed = yield* fs.exists(path.join(options.source, "traits-prev"))
+    const legacy = renamed ? "traits-prev" : "traits"
+    const importModule = <A>(file: string): Promise<A> =>
+      import(pathToFileURL(path.join(options.source, legacy, file)).href)
     const directory = yield* fs.makeTempDirectoryScoped({ directory: "/tmp/opencode", prefix: "traits-bench-worker-" })
     yield* fs.copy(path.join(options.fixture, "traits"), directory)
     const io = { reads: 0, scans: 0, watchEvents: 0, markdownEvents: 0 }
@@ -86,24 +90,22 @@ const output = await Effect.runPromise(
     const importStart = performance.now()
     let storeTag: Context.Key<TraitStore, StoreApi>
     let layer: Layer.Layer<TraitStore, never, NodeServices.NodeServices | Reactivity.Reactivity>
-    let Database: typeof import("../../traits/TraitDatabase.ts") | undefined
+    let Database: typeof import("../../traits-prev/TraitDatabase.ts") | undefined
     if (options.variant === "main-fs") {
-      const Store = yield* Effect.promise(() => importModule<MainStoreModule>("traits/TraitStore.ts"))
+      const Store = yield* Effect.promise(() => importModule<MainStoreModule>("TraitStore.ts"))
       storeTag = Store.TraitStore
       layer = Store.layerFileSystem(directory).pipe(Layer.orDie)
     } else {
-      const Store = yield* Effect.promise(() =>
-        importModule<typeof import("traits/TraitStore")>("traits/TraitStore.ts")
-      )
+      const Store = yield* Effect.promise(() => importModule<typeof import("traits-prev/TraitStore")>("TraitStore.ts"))
       storeTag = Store.TraitStore
       const Paths = yield* Effect.promise(() =>
-        importModule<typeof import("traits/ProjectPaths")>("traits/ProjectPaths.ts")
+        importModule<typeof import("traits-prev/ProjectPaths")>("ProjectPaths.ts")
       )
       const ContextModule = yield* Effect.promise(() =>
-        importModule<typeof import("traits/TraitsContext")>("traits/TraitsContext.ts")
+        importModule<typeof import("traits-prev/TraitsContext")>("TraitsContext.ts")
       )
       Database = yield* Effect.promise(() =>
-        importModule<typeof import("../../traits/TraitDatabase.ts")>("traits/TraitDatabase.ts")
+        importModule<typeof import("../../traits-prev/TraitDatabase.ts")>("TraitDatabase.ts")
       )
       layer = Store.layer.pipe(
         Layer.provide(
@@ -144,7 +146,7 @@ const output = await Effect.runPromise(
         Layer.orDie
       )
     }
-    const Trait = yield* Effect.promise(() => importModule<typeof import("traits/Trait")>("traits/Trait.ts"))
+    const Trait = yield* Effect.promise(() => importModule<typeof import("traits-prev/Trait")>("Trait.ts"))
     const importMs = performance.now() - importStart
     const buildStart = performance.now()
     const scope = yield* Effect.scope

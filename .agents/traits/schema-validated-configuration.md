@@ -1,8 +1,9 @@
 ---
 name: schema-validated-configuration
-purpose: Reject invalid configuration and numeric domain values at their boundaries before they reach consumers.
-subject: Configuration and numeric domain validation with Effect Schema.
-requirement: "Validate configuration through Config.schema with appropriate
+subject: Configuration and numeric domain validation with Effect Schema. Applies
+  when loading and validating configuration with Effect Config. In TypeScript or
+  TSX files.
+assertion: "Validate configuration through Config.schema with appropriate
   schemas and checks, not Config.Number followed by manual conditions. For
   numeric schema fields in configuration and domain records, express both
   numeric kind and domain bounds: use S.Int for integral values and S.Finite
@@ -11,9 +12,8 @@ requirement: "Validate configuration through Config.schema with appropriate
   limits require positive integers. Do not weaken integer fields to S.Finite or
   add redundant finiteness checks to S.Int. Verify platform semantics before
   constraining process exit codes or other externally supplied numbers."
-applicability: |-
-  Applies when loading and validating configuration with Effect Config.
-  File types or languages: text/typescript, text/tsx.
+purpose: Reject invalid configuration and numeric domain values at their
+  boundaries before they reach consumers.
 ---
 ```diff
 -const limit = Config.Number("LIMIT")

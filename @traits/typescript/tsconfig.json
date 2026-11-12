@@ -6,5 +6,5 @@
     "outDir": "dist",
     "noEmit": false
   },
-  "references": [{ "path": "../../traits-next" }]
+  "references": [{ "path": "../../traits" }]
 }

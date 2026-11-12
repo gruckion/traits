@@ -1,7 +1,7 @@
 import { Array, Effect } from "effect"
-import { type Change, Segment, Segmenter } from "traits-next"
+import { type Change, Segment, Segmenter } from "traits"
 
-/** Selects top-level statements from the after-source, or the before-source for whole-file deletions. Historical mappings are not computed. */
+/** Selects top-level statements from the after-source, or the before-source for whole-file deletions; files that are not JavaScript or TypeScript have none. Historical mappings are not computed. */
 export default Effect.gen(function* () {
   const { parseSync } = yield* Effect.tryPromise({
     try: () => import("oxc-parser"),
@@ -13,10 +13,9 @@ export default Effect.gen(function* () {
   })
   return Effect.fn("TypeScript.segment")(function* (change: Change) {
     const source = (change.after ?? change.before)!
+    // Other file types contain no JavaScript or TypeScript statements, so there is nothing to select or assess.
     if (!/\.(?:[cm]?[jt]s|[jt]sx)$/iu.test(source.path)) {
-      return yield* Segmenter.SegmenterError.make({
-        instruction: `Cannot segment ${source.path} as JavaScript or TypeScript. Use a supported JS/JSX/TS/TSX filename or choose a segmenter for this file type, then rerun evaluation.`
-      })
+      return []
     }
     const result = yield* Effect.sync(() => parseSync(source.path, source.text)).pipe(
       Effect.filterOrFail(

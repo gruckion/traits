@@ -1,7 +1,7 @@
 ---
 name: parallelize-independent-effects
 subject: Independent Effect operations within a workflow.
-requirement: Prefer explicit parallel composition for Effect operations that do
+assertion: Prefer explicit parallel composition for Effect operations that do
   not depend on one another's results and can safely overlap, rather than
   sequential yield statements. Use Effect.all with an explicit concurrency
   option; use unbounded concurrency for predictably small, independent groups.

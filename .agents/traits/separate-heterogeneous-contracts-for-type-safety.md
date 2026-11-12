@@ -1,16 +1,16 @@
 ---
 name: separate-heterogeneous-contracts-for-type-safety
 subject: Services, registries, caches, and other abstractions combining variants
-  with different input, result, error, or dependency types.
-requirement: Prefer separate precisely typed instances or services when
-  combining heterogeneous contracts requires conditional or indexed types whose
-  variance or lost correlations lead to type assertions, widened
-  error/dependency unions, or repeated kind-dependent branching. Reuse genuinely
-  common lifecycle and execution machinery through typed helpers or constructors
-  rather than forcing unlike contracts into one discriminator-driven interface.
-  Retain a unified abstraction when it preserves those relationships cleanly
-  without such workarounds.
-applicability: TypeScript APIs and implementations, including Effect services and caches.
+  with different input, result, error, or dependency types. In TypeScript APIs
+  and implementations, including Effect services and caches.
+assertion: Prefer separate precisely typed instances or services when combining
+  heterogeneous contracts requires conditional or indexed types whose variance
+  or lost correlations lead to type assertions, widened error/dependency unions,
+  or repeated kind-dependent branching. Reuse genuinely common lifecycle and
+  execution machinery through typed helpers or constructors rather than forcing
+  unlike contracts into one discriminator-driven interface. Retain a unified
+  abstraction when it preserves those relationships cleanly without such
+  workarounds.
 purpose: Preserve useful static guarantees and simple implementations without
   duplicating shared infrastructure.
 ---

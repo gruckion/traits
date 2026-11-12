@@ -1,8 +1,8 @@
 ---
 name: native-inline-checks-and-direct-effect-predicates
-purpose: Keep simple checks immediately readable while preserving concise predicate composition and required semantics.
-subject: Inline runtime checks and predicate stages in existing pipelines.
-requirement: Prefer native syntax for inline comparisons and simple runtime
+subject: Inline runtime checks and predicate stages in existing pipelines. In
+  TypeScript or TSX files.
+assertion: Prefer native syntax for inline comparisons and simple runtime
   checks, such as `bounds.top <= readingLine` and `value === 0`. Prefer suitable
   Effect predicate helpers when passed directly as callbacks or curried stages
   in an existing pipeline, such as `Effect.filterOrFail(Equal.equals(0),
@@ -11,8 +11,8 @@ requirement: Prefer native syntax for inline comparisons and simple runtime
   when native syntax would change required equality semantics or type narrowing;
   use native expressions when no suitable helper exists or a helper would change
   required semantics.
-applicability: |-
-  File types or languages: text/typescript, text/tsx.
+purpose: Keep simple checks immediately readable while preserving concise
+  predicate composition and required semantics.
 ---
 ```diff
 -if (Number.lessThanOrEqualTo(bounds.top, readingLine)) show()

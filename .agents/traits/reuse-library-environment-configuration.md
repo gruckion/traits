@@ -1,7 +1,7 @@
 ---
 name: reuse-library-environment-configuration
 subject: Integrations with an existing library-provided environment configuration API.
-requirement: Prefer the library's environment-based configuration when it meets
+assertion: Prefer the library's environment-based configuration when it meets
   the integration's requirements. Do not add duplicate CLI flags, configuration
   parsing, or override-precedence logic unless a distinct requirement calls for
   them.

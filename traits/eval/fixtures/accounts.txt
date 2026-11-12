@@ -1,0 +1,80 @@
+import { Effect, FileSystem, pipe, Schema as S } from "effect"
+import { CliError } from "effect/cli"
+
+import * as AtomicFile from "./_util/AtomicFile.ts"
+import { CliPaths } from "./CliPaths.ts"
+import { ProviderAccount } from "./Provider/ProviderAccount.ts"
+import { UserFileSecurity } from "./UserFileSecurity.ts"
+
+export class AccountsReadError extends S.TaggedError<AccountsReadError>()("AccountsReadError", {
+  path: S.String,
+  cause: S.Defect()
+}) {
+  override get message() {
+    return `Could not read provider accounts from ${this.path}. Check the file format, ownership, and permissions.`
+  }
+
+  override get [CliError.userMessage]() {
+    return this.message
+  }
+}
+
+export class AccountsWriteError extends S.TaggedError<AccountsWriteError>()("AccountsWriteError", {
+  path: S.String,
+  cause: S.Defect()
+}) {
+  override get message() {
+    return `Could not save provider accounts to ${this.path}. Check directory ownership, permissions, and available disk space.`
+  }
+
+  override get [CliError.userMessage]() {
+    return this.message
+  }
+}
+
+class InvalidAccountsError extends S.TaggedError<InvalidAccountsError>()("InvalidAccountsError", {
+  path: S.String
+}) {
+  override get message() {
+    return `Invalid provider accounts: ${this.path}`
+  }
+}
+
+/** Reads fresh accounts from owner-only storage without exposing credential parsing inputs. */
+export const read = Effect.gen(function* () {
+  const paths = yield* CliPaths
+  const fs = yield* FileSystem.FileSystem
+  if (!(yield* fs.exists(paths.accounts))) {
+    return []
+  }
+  const secure = yield* UserFileSecurity
+  yield* secure(paths.dataDirectory, "Directory")
+  yield* secure(paths.accounts, "File")
+  const text = yield* fs.readFileString(paths.accounts)
+  return yield* pipe(
+    text,
+    S.decodeEffect(S.fromJsonString(S.Array(ProviderAccount))),
+    Effect.mapError(() => InvalidAccountsError.make({ path: paths.accounts }))
+  )
+}).pipe(
+  Effect.catch((cause) => CliPaths.use((paths) => AccountsReadError.make({ path: paths.accounts, cause }))),
+  Effect.withSpan("Accounts.read")
+)
+
+/** Replaces all saved accounts; coordinate read-modify-write operations with UserConfigLock. */
+export const write = Effect.fn("Accounts.write")(
+  function* (accounts: ReadonlyArray<ProviderAccount>) {
+    const paths = yield* CliPaths
+    const fs = yield* FileSystem.FileSystem
+    const secure = yield* UserFileSecurity
+    yield* fs.makeDirectory(paths.dataDirectory, { recursive: true, mode: 0o700 })
+    yield* secure(paths.dataDirectory, "Directory")
+    const text = yield* pipe(
+      accounts,
+      S.encodeEffect(S.fromJsonString(S.Array(ProviderAccount))),
+      Effect.mapError(() => InvalidAccountsError.make({ path: paths.accounts }))
+    )
+    yield* AtomicFile.write(paths.accounts, text)
+  },
+  Effect.catch((cause) => CliPaths.use((paths) => AccountsWriteError.make({ path: paths.accounts, cause })))
+)

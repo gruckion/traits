@@ -1,7 +1,8 @@
 ---
 name: preserve-property-names-in-local-destructuring
-subject: Object properties extracted into local bindings for repeated use.
-requirement: "For ordinary data properties, use local object destructuring with
+subject: Object properties extracted into local bindings for repeated use. In
+  TypeScript, TSX, JavaScript, and JSX.
+assertion: "For ordinary data properties, use local object destructuring with
   the existing property name instead of a differently named alias: const {
   proposedTrait } = params, not const proposed = params.proposedTrait. Reference
   proposedTrait afterward. Do not apply this mechanically to built-in or
@@ -12,7 +13,6 @@ requirement: "For ordinary data properties, use local object destructuring with
   obscure API semantics. This concerns local bindings, not function-parameter
   destructuring, and does not prohibit meaningful names for transformed
   results."
-applicability: TypeScript, TSX, JavaScript, and JSX.
 purpose: Reduce redundant naming for ordinary data while preserving the
   semantics and clarity of native APIs and accessors.
 ---
@@ -22,3 +22,5 @@ purpose: Reduce redundant naming for ordinary data while preserving the
 +const { proposedTrait } = params
 +const text = Trait.serialize(proposedTrait)
 ```
+
+Not an alias: a binding for a transformed value, such as `const flagged = Option.getOrUndefined(params.from)`, which names the result of a transformation rather than renaming the property.

@@ -2,7 +2,7 @@
 name: core-type-before-supporting-declarations
 subject: TypeScript modules whose core abstraction is represented by an
   interface or type-only declaration.
-requirement: Place the interface or type-only declaration representing the
+assertion: Place the interface or type-only declaration representing the
   module's core abstraction directly after imports, before supporting
   declarations such as error definitions.
 purpose: Let readers encounter the module's primary contract before its

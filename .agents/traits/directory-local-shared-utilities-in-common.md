@@ -1,7 +1,7 @@
 ---
 name: directory-local-shared-utilities-in-common
 subject: Utility modules shared only by sibling modules within one directory.
-requirement: Name directory-specific shared utility modules _common.ts and
+assertion: Name directory-specific shared utility modules _common.ts and
   colocate them with their consumers, rather than using shared.ts, share.ts, or
   generic utilities elsewhere. Keep utilities reused outside that directory in
   an appropriately named shared domain module instead of treating them as

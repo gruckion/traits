@@ -1,7 +1,7 @@
 ---
 name: pipe-effect-acquire-release
 subject: Composition of Effect.acquireRelease with its acquisition effect.
-requirement: Prefer piping the acquisition effect into Effect.acquireRelease
+assertion: Prefer piping the acquisition effect into Effect.acquireRelease
   rather than passing it as a nested first argument. Use a native curried
   overload when available; otherwise use an inline adapter such as
   acquire.pipe((effect) => Effect.acquireRelease(effect, release)). Keep

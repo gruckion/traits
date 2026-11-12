@@ -1,0 +1,87 @@
+{
+  "name": "traits-prev",
+  "version": "0.5.14",
+  "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crosshatch/traits.git",
+    "directory": "traits-prev"
+  },
+  "bin": {
+    "traits-prev": "./dist/bin.js"
+  },
+  "files": [
+    "*.ts",
+    "!vite.config.ts",
+    "_util/**/*.ts",
+    "commands/**/*.ts",
+    "skills/**/*.md",
+    "tables/**/*.ts",
+    "toolkit/**/*.ts",
+    "reflection/**/*.ts",
+    "dist/package.json",
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "!dist/vite.config.*",
+    "!dist/integration/**",
+    "!dist/test/**"
+  ],
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": "./index.ts",
+    "./tables": null,
+    "./tables/*": null,
+    "./*": "./*.ts",
+    "./_util/*": null,
+    "./commands/*": null,
+    "./reflection/*": null,
+    "./mcp": null,
+    "./WorkspacePaths": null,
+    "./index": null,
+    "./ToolExecutionError": null,
+    "./TraitDatabase": null,
+    "./TraitProjectLock": null,
+    "./TraitsConfigProvider": null,
+    "./TraitsHttpClient": null
+  },
+  "publishConfig": {
+    "exports": {
+      "./package.json": "./package.json",
+      ".": "./dist/index.js",
+      "./tables": null,
+      "./tables/*": null,
+      "./*": "./dist/*.js",
+      "./_util/*": null,
+      "./commands/*": null,
+      "./reflection/*": null,
+      "./mcp": null,
+      "./WorkspacePaths": null,
+      "./index": null,
+      "./ToolExecutionError": null,
+      "./TraitDatabase": null,
+      "./TraitProjectLock": null,
+      "./TraitsConfigProvider": null,
+      "./TraitsHttpClient": null
+    },
+    "access": "public"
+  },
+  "dependencies": {
+    "@effect/sql-libsql": "catalog:",
+    "drizzle-kit": "catalog:",
+    "drizzle-orm": "catalog:",
+    "yaml": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
+    "effect": "catalog:"
+  },
+  "peerDependencies": {
+    "@effect/platform-node": "catalog:",
+    "effect": "catalog:"
+  }
+}

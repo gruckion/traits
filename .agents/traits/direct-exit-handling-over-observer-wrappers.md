@@ -1,7 +1,7 @@
 ---
 name: direct-exit-handling-over-observer-wrappers
 subject: Handling settled Effect outcomes and abstractions around result consumption.
-requirement: When code needs an operation's Exit and then updates state or
+assertion: When code needs an operation's Exit and then updates state or
   branches on it, obtain the Exit with Effect.exit and handle it directly. Do
   not introduce callback-based capture/observe wrappers or helper modules that
   merely invoke a callback with the same outcome. Retain onExit, finalizers, or

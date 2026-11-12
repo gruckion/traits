@@ -1,7 +1,7 @@
 ---
 name: context-service-use-over-flatmap
 subject: Effectful callbacks applied directly to an Effect Context service lookup.
-requirement: Use the Context service's .use(callback) accessor instead of
+assertion: Use the Context service's .use(callback) accessor instead of
   Service.pipe(Effect.flatMap(callback)), pipe(Service,
   Effect.flatMap(callback)), or Effect.flatMap(Service, callback) when the
   operation simply retrieves that service and runs an effectful callback. This

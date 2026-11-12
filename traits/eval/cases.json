@@ -1,0 +1,285 @@
+{
+  "traits": [
+    "always-brace-if-bodies",
+    "blank-lines-between-class-methods",
+    "direct-property-access-in-parameters",
+    "provide-layer-arrays-directly",
+    "omit-nominal-brands-on-schema-errors",
+    "module-named-files-over-internal-index"
+  ],
+  "fixtures": [
+    {
+      "id": "execution",
+      "path": "traits/Check/Execution.ts"
+    },
+    {
+      "id": "preparation",
+      "path": "traits/Check/Preparation.ts"
+    },
+    {
+      "id": "accounts",
+      "path": "traits/Cli/Accounts.ts"
+    },
+    {
+      "id": "cli-paths",
+      "path": "traits/Cli/CliPaths.ts"
+    },
+    {
+      "id": "user-file-security",
+      "path": "traits/Cli/UserFileSecurity.ts"
+    },
+    {
+      "id": "check-command",
+      "path": "traits/Cli/commands/check/check.ts"
+    },
+    {
+      "id": "version",
+      "path": "traits/Version.ts"
+    },
+    {
+      "id": "trait-file",
+      "path": "traits/TraitFile.ts"
+    },
+    {
+      "id": "workspace-traits",
+      "path": "traits/WorkspaceTraits.ts"
+    },
+    {
+      "id": "workspace-root",
+      "path": "traits/WorkspaceRoot.ts"
+    },
+    {
+      "id": "mcp-server",
+      "path": "traits/mcp/Server.ts"
+    },
+    {
+      "id": "report-index",
+      "path": "traits/Report/index.ts"
+    },
+    {
+      "id": "util-index",
+      "path": "traits/util/index.ts"
+    },
+    {
+      "id": "user-config",
+      "path": "traits/Cli/UserConfig.ts"
+    },
+    {
+      "id": "enrichment-error",
+      "path": "traits/Enrichment/EnrichmentError.ts"
+    },
+    {
+      "id": "gitignore",
+      "path": "traits/Cli/Gitignore.ts"
+    },
+    {
+      "id": "report",
+      "path": "traits/Report/Report.ts"
+    },
+    {
+      "id": "traits-config-test",
+      "path": "traits/test/TraitsConfig.test.ts"
+    },
+    {
+      "id": "architecture",
+      "path": "traits/ARCHITECTURE.md"
+    },
+    {
+      "id": "package-json",
+      "path": "traits/package.json"
+    },
+    {
+      "id": "execution-unbraced",
+      "path": "traits/Check/ExecutionUnbraced.ts"
+    },
+    {
+      "id": "version-unbraced",
+      "path": "traits/VersionUnbraced.ts"
+    },
+    {
+      "id": "accounts-unspaced",
+      "path": "traits/Cli/AccountsUnspaced.ts"
+    },
+    {
+      "id": "report-destructured",
+      "path": "traits/Report/ReportDestructured.ts"
+    },
+    {
+      "id": "check-destructured",
+      "path": "traits/Cli/commands/check/checkDestructured.ts"
+    },
+    {
+      "id": "traits-config-test-merged",
+      "path": "traits/test/TraitsConfigMerged.test.ts"
+    },
+    {
+      "id": "enrichment-error-branded",
+      "path": "traits/Enrichment/EnrichmentErrorBranded.ts"
+    }
+  ],
+  "labels": {
+    "always-brace-if-bodies": {
+      "execution": "pass",
+      "preparation": "pass",
+      "accounts": "pass",
+      "cli-paths": "pass",
+      "user-file-security": "pass",
+      "check-command": "pass",
+      "version": "pass",
+      "trait-file": "pass",
+      "workspace-traits": "pass",
+      "workspace-root": "unmatched",
+      "mcp-server": "unmatched",
+      "report-index": "unmatched",
+      "util-index": "unmatched",
+      "user-config": "pass",
+      "enrichment-error": "unmatched",
+      "gitignore": "unmatched",
+      "report": "pass",
+      "traits-config-test": "pass",
+      "architecture": "unmatched",
+      "package-json": "unmatched",
+      "execution-unbraced": "fail",
+      "version-unbraced": "fail",
+      "accounts-unspaced": "pass",
+      "report-destructured": "pass",
+      "check-destructured": "pass",
+      "traits-config-test-merged": "pass",
+      "enrichment-error-branded": "unmatched"
+    },
+    "blank-lines-between-class-methods": {
+      "execution": "unmatched",
+      "preparation": "unmatched",
+      "accounts": "pass",
+      "cli-paths": "unmatched",
+      "user-file-security": "unmatched",
+      "check-command": "unmatched",
+      "version": "unmatched",
+      "trait-file": "unmatched",
+      "workspace-traits": "unmatched",
+      "workspace-root": "unmatched",
+      "mcp-server": "unmatched",
+      "report-index": "unmatched",
+      "util-index": "unmatched",
+      "user-config": "pass",
+      "enrichment-error": "unmatched",
+      "gitignore": "pass",
+      "report": "unmatched",
+      "traits-config-test": "unmatched",
+      "architecture": "unmatched",
+      "package-json": "unmatched",
+      "execution-unbraced": "unmatched",
+      "version-unbraced": "unmatched",
+      "accounts-unspaced": "fail",
+      "report-destructured": "unmatched",
+      "check-destructured": "unmatched",
+      "traits-config-test-merged": "unmatched",
+      "enrichment-error-branded": "unmatched"
+    },
+    "direct-property-access-in-parameters": {
+      "execution": "pass",
+      "preparation": "pass",
+      "accounts": "pass",
+      "cli-paths": "unmatched",
+      "user-file-security": "pass",
+      "check-command": "pass",
+      "version": "pass",
+      "trait-file": "pass",
+      "workspace-traits": "pass",
+      "workspace-root": "pass",
+      "mcp-server": "unmatched",
+      "report-index": "unmatched",
+      "util-index": "unmatched",
+      "user-config": "pass",
+      "enrichment-error": "unmatched",
+      "gitignore": "pass",
+      "report": "pass",
+      "traits-config-test": "pass",
+      "architecture": "unmatched",
+      "package-json": "unmatched",
+      "execution-unbraced": "pass",
+      "version-unbraced": "pass",
+      "accounts-unspaced": "pass",
+      "report-destructured": "fail",
+      "check-destructured": "fail",
+      "traits-config-test-merged": "pass",
+      "enrichment-error-branded": "unmatched"
+    },
+    "provide-layer-arrays-directly": {
+      "execution": "unmatched",
+      "preparation": "unmatched",
+      "accounts": "unmatched",
+      "cli-paths": "unmatched",
+      "user-file-security": "unmatched",
+      "check-command": "unmatched",
+      "version": "unmatched",
+      "trait-file": "unmatched",
+      "workspace-traits": "unmatched",
+      "workspace-root": "unmatched",
+      "mcp-server": "unmatched",
+      "report-index": "unmatched",
+      "util-index": "unmatched",
+      "user-config": "unmatched",
+      "enrichment-error": "unmatched",
+      "gitignore": "unmatched",
+      "report": "unmatched",
+      "traits-config-test": "pass",
+      "architecture": "unmatched",
+      "package-json": "unmatched",
+      "execution-unbraced": "unmatched",
+      "version-unbraced": "unmatched",
+      "accounts-unspaced": "unmatched",
+      "report-destructured": "unmatched",
+      "check-destructured": "unmatched",
+      "traits-config-test-merged": "fail",
+      "enrichment-error-branded": "unmatched"
+    },
+    "omit-nominal-brands-on-schema-errors": {
+      "execution": "unmatched",
+      "preparation": "unmatched",
+      "accounts": "pass",
+      "cli-paths": "unmatched",
+      "user-file-security": "pass",
+      "check-command": "pass",
+      "version": "unmatched",
+      "trait-file": "pass",
+      "workspace-traits": "pass",
+      "workspace-root": "unmatched",
+      "mcp-server": "unmatched",
+      "report-index": "unmatched",
+      "util-index": "unmatched",
+      "user-config": "pass",
+      "enrichment-error": "pass",
+      "gitignore": "pass",
+      "report": "unmatched",
+      "traits-config-test": "unmatched",
+      "architecture": "unmatched",
+      "package-json": "unmatched",
+      "execution-unbraced": "unmatched",
+      "version-unbraced": "unmatched",
+      "accounts-unspaced": "pass",
+      "report-destructured": "unmatched",
+      "check-destructured": "pass",
+      "traits-config-test-merged": "unmatched",
+      "enrichment-error-branded": "fail"
+    },
+    "module-named-files-over-internal-index": {
+      "accounts": "pass",
+      "cli-paths": "pass",
+      "user-file-security": "pass",
+      "version": "pass",
+      "trait-file": "pass",
+      "workspace-traits": "pass",
+      "workspace-root": "pass",
+      "mcp-server": "pass",
+      "report-index": "fail",
+      "util-index": "fail",
+      "user-config": "pass",
+      "gitignore": "pass",
+      "report": "pass",
+      "traits-config-test": "pass",
+      "architecture": "unmatched",
+      "package-json": "unmatched"
+    }
+  }
+}

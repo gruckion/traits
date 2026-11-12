@@ -1,15 +1,14 @@
 ---
 name: keep-decoded-configuration-on-context
-purpose: Preserve a clear source of configuration truth and distinguish decoded settings from derived runtime state.
 subject: Decoded configuration and derived runtime values exposed through an
-  Effect context.
-requirement: When an Effect context exposes decoded configuration, keep the
+  Effect context. In TypeScript or TSX files.
+assertion: When an Effect context exposes decoded configuration, keep the
   configuration object on the context and read unchanged settings through it
   rather than copying individual settings into separate context fields. Keep
   derived runtime values, such as normalized paths and semaphores, as separate
   context fields.
-applicability: |-
-  File types or languages: text/typescript, text/tsx.
+purpose: Preserve a clear source of configuration truth and distinguish decoded
+  settings from derived runtime state.
 ---
 ```diff
 -return { concurrency: config.concurrency, semaphore }

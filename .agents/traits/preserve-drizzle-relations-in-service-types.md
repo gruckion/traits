@@ -1,7 +1,7 @@
 ---
 name: preserve-drizzle-relations-in-service-types
 subject: Drizzle-backed Effect database service types.
-requirement: Preserve configured table and relations metadata and client
+assertion: Preserve configured table and relations metadata and client
   properties in the database service type rather than using an unparameterized
   database type that defaults to empty relations. Prefer declaring the shape
   inline with the concrete database type parameterized by typeof a shared

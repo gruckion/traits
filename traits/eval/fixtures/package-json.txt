@@ -1,0 +1,63 @@
+{
+  "name": "traits",
+  "version": "0.5.14",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crosshatch/traits.git",
+    "directory": "traits"
+  },
+  "bin": {
+    "traits": "./dist/main.js"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "*.ts",
+    "!vite.config.ts",
+    "Check/**/*.ts",
+    "Cli/**/*.ts",
+    "Enrichment/**/*.ts",
+    "mcp/**/*.ts",
+    "Report/**/*.ts",
+    "Segmenter/**/*.ts",
+    "TraitsEnvironment/**/*.ts",
+    "util/**/*.ts",
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "!dist/test/**",
+    "!dist/vite.config.*"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./mcp": "./mcp/index.ts"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": "./dist/index.js",
+      "./mcp": "./dist/mcp/index.js"
+    },
+    "access": "public"
+  },
+  "dependencies": {
+    "@effect/ai-anthropic": "catalog:",
+    "@effect/ai-cloudflare": "catalog:",
+    "@effect/ai-openai": "catalog:",
+    "@effect/ai-openai-compat": "catalog:",
+    "@effect/ai-openrouter": "catalog:",
+    "fs-native-extensions": "catalog:",
+    "import-meta-resolve": "catalog:",
+    "yaml": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
+    "effect": "catalog:"
+  },
+  "peerDependencies": {
+    "@effect/platform-node": "catalog:",
+    "effect": "catalog:"
+  }
+}

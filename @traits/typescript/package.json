@@ -27,10 +27,10 @@
   "devDependencies": {
     "@effect/vitest": "catalog:",
     "effect": "catalog:",
-    "traits-next": "workspace:*"
+    "traits": "workspace:*"
   },
   "peerDependencies": {
     "effect": "catalog:",
-    "traits-next": "workspace:*"
+    "traits": "workspace:*"
   }
 }

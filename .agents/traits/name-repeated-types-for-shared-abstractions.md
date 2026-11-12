@@ -1,7 +1,7 @@
 ---
 name: name-repeated-types-for-shared-abstractions
 subject: Repeated TypeScript type expressions representing the same abstraction.
-requirement: Extract a descriptive named type and reuse it when multiple
+assertion: Extract a descriptive named type and reuse it when multiple
   declarations repeat the same type expression for the same abstraction.
   Preserve generic parameters and their relationships. Do not unify types solely
   because their current structure matches when they represent independently

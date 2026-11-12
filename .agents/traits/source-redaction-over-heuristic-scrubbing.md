@@ -1,7 +1,7 @@
 ---
 name: source-redaction-over-heuristic-scrubbing
 subject: Secret handling and error diagnostic formatting.
-requirement: Wrap known secret values in Redacted at their source and prefer
+assertion: Wrap known secret values in Redacted at their source and prefer
   standard library error formatting over bespoke recursive formatters and
   speculative secret-pattern scrubbing. Add custom sanitization only for a
   concrete unmet requirement; do not assume source redaction protects secrets

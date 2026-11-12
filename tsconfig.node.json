@@ -4,5 +4,5 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "references": [{ "path": "./traits" }]
+  "references": [{ "path": "./traits-prev" }]
 }

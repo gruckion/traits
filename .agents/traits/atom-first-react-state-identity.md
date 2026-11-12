@@ -1,14 +1,13 @@
 ---
 name: atom-first-react-state-identity
-purpose: Keep state identity stable under atom lifecycle management without relying on React memoization.
-subject: Ownership and identity of Effect reactivity atoms in React.
-requirement: In React code using Effect reactivity atoms, prefer atom-first
+subject: Ownership and identity of Effect reactivity atoms in React. In TSX files.
+assertion: In React code using Effect reactivity atoms, prefer atom-first
   ownership and identity rather than React useMemo to keep atom state stable.
   Have Atom.family factories return atoms directly instead of ephemeral wrapper
   objects containing atoms, so atom hooks retain the cached values without React
   memoization.
-applicability: |-
-  File types or languages: text/tsx.
+purpose: Keep state identity stable under atom lifecycle management without
+  relying on React memoization.
 ---
 ```diff
 -import { useMemo } from "react"

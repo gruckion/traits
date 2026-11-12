@@ -1,10 +1,12 @@
 ---
 name: unions-for-field-presence-constraints
-purpose: Keep shape constraints visible in decoded types, exported JSON Schema,
-  and documentation instead of hiding them in runtime-only refinements.
-subject: Effect Schema definitions whose valid shapes depend on which fields are present.
-requirement: When a schema's validity depends only on which fields are present
-  (at least one of several, exactly one, or a field allowed or required only
+subject: "Effect Schema definitions whose valid shapes depend on which fields
+  are present. Filters remain appropriate for constraints that structure cannot
+  express: relationships between field values (range ordering, index bounds into
+  a sibling array, length checks) or validation against external data. This rule
+  covers presence constraints only."
+assertion: When a schema's validity depends only on which fields are present (at
+  least one of several, exactly one, or a field allowed or required only
   alongside another), model each valid combination as a member of an S.Union of
   structs rather than declaring all fields optional and enforcing the
   combination with S.makeFilter or another refinement. Mark each field as
@@ -12,8 +14,8 @@ requirement: When a schema's validity depends only on which fields are present
   shapes. Use a tagged union when members are mutually exclusive and consumers
   need to branch on the case; keep the union untagged when overlapping members
   reflect real overlap, such as both sides of a rename.
-applicability: |-
-  Filters remain appropriate for constraints that structure cannot express: relationships between field values (range ordering, index bounds into a sibling array, length checks) or validation against external data. This rule covers presence constraints only.
+purpose: Keep shape constraints visible in decoded types, exported JSON Schema,
+  and documentation instead of hiding them in runtime-only refinements.
 ---
 ```diff
 -export const ChangePaths = S.Struct({

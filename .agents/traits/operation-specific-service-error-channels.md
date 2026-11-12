@@ -1,7 +1,7 @@
 ---
 name: operation-specific-service-error-channels
 subject: Error types in explicit Effect service contracts.
-requirement: Give each service operation an operation-specific error type rather
+assertion: Give each service operation an operation-specific error type rather
   than a generic service-wide error wrapper.
 purpose: Let callers identify the failed operation and choose operation-specific
   recovery.

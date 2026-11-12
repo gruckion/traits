@@ -1,7 +1,7 @@
 ---
 name: purposeful-schema-field-exclusions
 subject: Explicit forbidden-field declarations in object schemas and union members.
-requirement: Omit fields that do not belong to a variant rather than adding
+assertion: Omit fields that do not belong to a variant rather than adding
   optional Never fields solely to reject harmless excess properties. Use
   explicit field exclusions when their absence enforces a concrete contract,
   such as preventing an invalid value from matching another union branch and

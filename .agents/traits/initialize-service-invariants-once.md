@@ -1,7 +1,7 @@
 ---
 name: initialize-service-invariants-once
 subject: One-off setup used by effectful methods returned by an Effect service or layer.
-requirement: Perform setup that is invariant for a service instance, such as
+assertion: Perform setup that is invariant for a service instance, such as
   loading modules or creating shared synchronization primitives, in the service
   or layer initialization effect and capture the results in its returned
   methods. Do not repeat that setup inside each method invocation. Keep

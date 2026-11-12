@@ -16,7 +16,7 @@ import {
   String
 } from "effect"
 import { ChildProcess, ChildProcessSpawner } from "effect/process"
-import * as Trait from "traits/Trait"
+import * as Trait from "traits-prev/Trait"
 
 import * as Model from "./model.ts"
 import * as Stats from "./stats.ts"
@@ -41,12 +41,17 @@ export const compare = Effect.fn("benchmarks.compare")(function* (options: Model
       : path.resolve(options.output)
   yield* fs.makeDirectory(output, { recursive: true })
   const baseline = path.join(output, "main-worktree")
+  // Revisions before the rename keep the legacy package in traits/; link this checkout's modules into either layout.
+  const linkedModules = Effect.map(fs.exists(path.join(baseline, "traits-prev")), (renamed) => [
+    ["node_modules", "node_modules"] as const,
+    ["traits-prev/node_modules", renamed ? "traits-prev/node_modules" : "traits/node_modules"] as const
+  ])
   const baselineCleanup = Effect.gen(function* () {
-    for (const relative of ["node_modules", "traits/node_modules"]) {
+    for (const [source, relative] of yield* linkedModules) {
       const link = path.join(baseline, relative)
       if (yield* fs.exists(link)) {
         const target = yield* fs.readLink(link)
-        if (target !== path.join(root, relative)) return yield* Effect.die(new Error(`Unexpected symlink: ${link}`))
+        if (target !== path.join(root, source)) return yield* Effect.die(new Error(`Unexpected symlink: ${link}`))
         yield* fs.remove(link)
       }
     }
@@ -55,8 +60,8 @@ export const compare = Effect.fn("benchmarks.compare")(function* (options: Model
   yield* Effect.acquireRelease(git("worktree", "add", "--detach", baseline, baseSha), () =>
     baselineCleanup.pipe(Effect.orDie)
   )
-  for (const relative of ["node_modules", "traits/node_modules"]) {
-    yield* fs.symlink(path.join(root, relative), path.join(baseline, relative))
+  for (const [source, relative] of yield* linkedModules) {
+    yield* fs.symlink(path.join(root, source), path.join(baseline, relative))
   }
   const entries = yield* fs.readDirectory(path.join(root, ".agents/traits"))
   const files = pipe(entries, Array.filter(String.endsWith(".md")), Array.sort(String.Order))
@@ -111,10 +116,10 @@ export const compare = Effect.fn("benchmarks.compare")(function* (options: Model
   const runtimeDependencies = yield* Effect.forEach(
     [
       ["effect", "node_modules/effect/package.json"],
-      ["@effect/sql-libsql", "traits/node_modules/@effect/sql-libsql/package.json"],
-      ["drizzle-orm", "traits/node_modules/drizzle-orm/package.json"],
-      ["drizzle-kit", "traits/node_modules/drizzle-kit/package.json"],
-      ["yaml", "traits/node_modules/yaml/package.json"]
+      ["@effect/sql-libsql", "traits-prev/node_modules/@effect/sql-libsql/package.json"],
+      ["drizzle-orm", "traits-prev/node_modules/drizzle-orm/package.json"],
+      ["drizzle-kit", "traits-prev/node_modules/drizzle-kit/package.json"],
+      ["yaml", "traits-prev/node_modules/yaml/package.json"]
     ] as const,
     (entry) => packageVersion(entry[1]).pipe(Effect.map((version) => [entry[0], version] as const))
   )
@@ -137,7 +142,7 @@ export const compare = Effect.fn("benchmarks.compare")(function* (options: Model
     gomaxprocs: yield* Config.String("GOMAXPROCS").pipe(Config.option, Effect.map(Option.getOrUndefined)),
     effectReference: yield* git("-C", "repos/Effect-TS/effect", "rev-parse", "HEAD"),
     tinybench: yield* packageVersion("node_modules/tinybench/package.json"),
-    headProductionDiff: yield* git("diff", "HEAD", "--", "traits"),
+    headProductionDiff: yield* git("diff", "HEAD", "--", "traits-prev"),
     runtimeDependencies: Record.fromEntries(runtimeDependencies),
     fixtures: Array.map(fixtures, (fixture) => ({ label: fixture.label, count: fixture.count, bytes: fixture.bytes }))
   }

@@ -4,7 +4,7 @@
     "servers": {
       "traits": {
         "type": "local",
-        "command": ["node", "traits/bin.ts"]
+        "command": ["./traits/main.ts", "mcp"]
       }
     }
   }

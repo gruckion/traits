@@ -1,6 +1,6 @@
 import { expect, it } from "@effect/vitest"
 import { Effect } from "effect"
-import { Segmenter } from "traits-next"
+import { Segmenter } from "traits"
 import { vi } from "vite-plus/test"
 
 import setup from "../segmenter/index.ts"

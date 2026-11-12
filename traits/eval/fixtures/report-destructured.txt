@@ -1,0 +1,217 @@
+import { Array, Function, Option, pipe, Schema as S } from "effect"
+
+import { ChangeIdentity } from "./ChangeIdentity.ts"
+import { ChangeReport } from "./ChangeReport.ts"
+import type { DecisionPolicy } from "./DecisionPolicy.ts"
+import { Diagnostic } from "./Diagnostic.ts"
+import { DiagnosticOrigin } from "./DiagnosticOrigin.ts"
+import { EnrichmentOutcome } from "./EnrichmentOutcome.ts"
+import { InputReport } from "./InputReport.ts"
+import { Problem } from "./Problem.ts"
+import type { ReportVerdicts } from "./ReportVerdicts.ts"
+import { Run } from "./Run.ts"
+import { TraitReport } from "./TraitReport.ts"
+import type { Verdict } from "./Verdict.ts"
+
+/** Portable, client-facing evaluation results grouped by trait and change, without source text or excerpts; retry tracking is external. */
+export type Report = typeof Report.Type
+export const Report = S.Struct({
+  /** Report format version; incompatible format changes increment it. */
+  version: S.Literal(1).annotateKey({
+    description: "Report format version; incompatible format changes increment it."
+  }),
+  /** Deterministic evaluation provenance, without timestamps, hosts, or absolute paths. */
+  run: Run,
+  /** Source identities for every supplied change in original caller order. */
+  changes: S.Array(ChangeIdentity).annotate({
+    description: "Source identities for every supplied change in original caller order."
+  }),
+  /** Shared extension failures, each recorded once; failures local to one input are recorded on that input. */
+  diagnostics: S.Array(Diagnostic).annotate({
+    description:
+      "Shared extension failures, each recorded once; failures local to one input are recorded on that input."
+  }),
+  /** Selected traits, uniquely named, in caller order. */
+  traits: S.Array(TraitReport).annotate({ description: "Selected traits, uniquely named, in caller order." })
+})
+  .annotate({
+    description:
+      "Portable, client-facing evaluation results grouped by trait and change, without source text or excerpts; retry tracking is external."
+  })
+  .check(
+    S.makeFilter(
+      (report) => {
+        const names = Array.map(report.traits, ({ trait }) => trait.name)
+        const afterPaths = Array.flatMap(report.changes, (change) =>
+          change.after === undefined ? [] : [change.after.path]
+        )
+        return Array.dedupe(names).length === names.length && Array.dedupe(afterPaths).length === afterPaths.length
+      },
+      { message: "Trait names must be unique, and no two changes may share an after path." }
+    ),
+    S.makeFilter(
+      (report) =>
+        Array.every(report.traits, (trait) => trait.changes.length === report.changes.length) &&
+        Array.every(report.diagnostics, (diagnostic) =>
+          DiagnosticOrigin.match(diagnostic.origin, {
+            SegmenterSetup: (origin) => Array.some(report.traits, (trait) => trait.trait.segment === origin.module),
+            SegmenterExecution: (origin) =>
+              origin.change < report.changes.length &&
+              Array.some(report.traits, (trait) => trait.trait.segment === origin.module),
+            EnrichmentSetup: (origin) =>
+              Array.some(report.traits, (trait) => trait.trait.enrichments?.includes(origin.module) === true)
+          })
+        ),
+      {
+        message:
+          "Trait reports must have one result per reported change, and diagnostics must name configured modules and reported changes."
+      }
+    ),
+    S.makeFilter(
+      (report) => {
+        const failedSetup = (module: string) =>
+          Array.some(
+            report.diagnostics,
+            (diagnostic) =>
+              (DiagnosticOrigin.guards.SegmenterSetup(diagnostic.origin) ||
+                DiagnosticOrigin.guards.EnrichmentSetup(diagnostic.origin)) &&
+              diagnostic.origin.module === module
+          )
+        const failedSegmentation = (module: string, change: number) =>
+          failedSetup(module) ||
+          Array.some(
+            report.diagnostics,
+            (diagnostic) =>
+              DiagnosticOrigin.guards.SegmenterExecution(diagnostic.origin) &&
+              diagnostic.origin.module === module &&
+              diagnostic.origin.change === change
+          )
+        return Array.every(report.traits, (trait) =>
+          Array.every(trait.changes, (result, index) => {
+            const change = report.changes[index]!
+            const segmenter = trait.trait.segment
+            return ChangeReport.match(result, {
+              Ignored: () => true,
+              NotSegmented: () => segmenter !== undefined && failedSegmentation(segmenter, index),
+              Evaluated: (evaluated) =>
+                (segmenter === undefined || !failedSegmentation(segmenter, index)) &&
+                Array.every(
+                  evaluated.inputs,
+                  (input) =>
+                    (input.segment._tag === "Before"
+                      ? change.before !== undefined
+                      : change.after !== undefined &&
+                        (input.segment.before === undefined ||
+                          input.segment.before.length === 0 ||
+                          change.before !== undefined)) &&
+                    (InputReport.guards.Unmatched(input) ||
+                      Array.every(
+                        input.enrichments,
+                        (enrichment) =>
+                          EnrichmentOutcome.guards.SetupFailed(enrichment) === failedSetup(enrichment.module)
+                      ))
+                )
+            })
+          })
+        )
+      },
+      {
+        message:
+          "Changes are NotSegmented exactly when a segmenter diagnostic explains it, enrichments are SetupFailed exactly when their setup failed, and inputs must select reported source sides."
+      }
+    )
+  )
+
+/** Combines verdicts by precedence Fail, Incomplete, Inconclusive, then Pass; empty input passes. */
+const combineVerdicts = (verdicts: ReadonlyArray<Verdict>): Verdict =>
+  pipe(
+    ["Fail", "Incomplete", "Inconclusive"] as const,
+    Array.findFirst((verdict) => Array.contains(verdicts, verdict)),
+    Option.getOrElse((): Verdict => "Pass")
+  )
+
+/** Derives Fail, Incomplete, Inconclusive, or Pass for every input, change, trait, and the report from a runner-produced report and policy. Interrupted checks return no report. */
+export const verdicts: {
+  (policy: DecisionPolicy): (report: Report) => ReportVerdicts
+  (report: Report, policy: DecisionPolicy): ReportVerdicts
+} = Function.dual(2, (report: Report, policy: DecisionPolicy): ReportVerdicts => {
+  const inputVerdict = (input: InputReport): Verdict =>
+    InputReport.match(input, {
+      Completed: (completed): Verdict => {
+        const { assessment } = completed
+        // A likely violation outranks every other outcome, including reduced enrichment context.
+        if (assessment !== undefined && assessment.fail >= policy.fail) {
+          return "Fail"
+        }
+        if (!Array.every(completed.enrichments, EnrichmentOutcome.guards.Succeeded)) {
+          return "Incomplete"
+        }
+        // Completed guidance-only inputs have no assessment and pass.
+        return assessment === undefined ||
+          assessment.pass >= policy.pass ||
+          (policy.na !== undefined && assessment.na >= policy.na)
+          ? "Pass"
+          : "Inconclusive"
+      },
+      // The trait does not apply to a target its subject decision ruled out.
+      Unmatched: (): Verdict => "Pass",
+      Failed: (): Verdict => "Incomplete",
+      Cancelled: (): Verdict => "Incomplete"
+    })
+  const traits = Array.map(report.traits, (trait) => {
+    const changes = Array.map(
+      trait.changes,
+      (change): { readonly verdict?: Verdict; readonly inputs: ReadonlyArray<Verdict> } =>
+        ChangeReport.match(change, {
+          Ignored: () => ({ inputs: [] }),
+          NotSegmented: () => ({ verdict: "Incomplete" as const, inputs: [] }),
+          Evaluated: (evaluated) => {
+            const inputs = Array.map(evaluated.inputs, inputVerdict)
+            return { verdict: combineVerdicts(inputs), inputs }
+          }
+        })
+    )
+    return {
+      verdict: combineVerdicts(
+        Array.flatMap(changes, (change) => (change.verdict === undefined ? [] : [change.verdict]))
+      ),
+      changes
+    }
+  })
+  return {
+    verdict: combineVerdicts([
+      ...Array.map(traits, (trait) => trait.verdict),
+      ...(report.diagnostics.length > 0 ? (["Incomplete"] as const) : [])
+    ]),
+    traits
+  }
+})
+
+/** Lists every failure in a report with its location: shared diagnostics first, then enrichment and assessment failures in trait, change, and input order. */
+export const problems = (report: Report): ReadonlyArray<Problem> => [
+  ...Array.map(report.diagnostics, (diagnostic) => Problem.cases.Shared.make({ diagnostic })),
+  ...Array.flatMap(report.traits, (traitReport, trait) =>
+    Array.flatMap(traitReport.changes, (result, change) =>
+      ChangeReport.guards.Evaluated(result)
+        ? Array.flatMap(result.inputs, (inputReport, input) => [
+            ...Array.flatMap(InputReport.guards.Unmatched(inputReport) ? [] : inputReport.enrichments, (enrichment) =>
+              EnrichmentOutcome.guards.Failed(enrichment)
+                ? [
+                    Problem.cases.Enrichment.make({
+                      trait,
+                      change,
+                      input,
+                      module: enrichment.module,
+                      explanation: enrichment.explanation
+                    })
+                  ]
+                : []
+            ),
+            ...(InputReport.guards.Failed(inputReport) && inputReport.explanation !== undefined
+              ? [Problem.cases.Assessment.make({ trait, change, input, explanation: inputReport.explanation })]
+              : [])
+          ])
+        : []
+    )
+  )
+]

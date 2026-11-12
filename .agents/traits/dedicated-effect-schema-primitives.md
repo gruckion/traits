@@ -1,7 +1,7 @@
 ---
 name: dedicated-effect-schema-primitives
 subject: Effect schema definitions expressing standard validation constraints.
-requirement: Prefer dedicated built-in Effect schemas over equivalent manually
+assertion: Prefer dedicated built-in Effect schemas over equivalent manually
   composed checks when they preserve the intended validation and inferred type.
   For example, use S.NonEmptyArray instead of S.Array plus a minimum-length-one
   check, S.NonEmptyString instead of S.String plus a nonempty check, and

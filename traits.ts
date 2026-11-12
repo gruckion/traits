@@ -1,6 +1,6 @@
 import { OpenRouterClient, OpenRouterDecisionModel, OpenRouterLanguageModel } from "@effect/ai-openrouter"
 import { Config, Layer } from "effect"
-import type { TraitsConfig } from "traits"
+import type { TraitsConfig } from "traits-prev"
 
 const layerClient = OpenRouterClient.layerConfig({ apiKey: Config.Redacted("OPENROUTER_API_KEY") })
 
