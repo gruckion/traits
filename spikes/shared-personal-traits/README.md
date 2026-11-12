@@ -6,7 +6,14 @@ in those checkouts?
 
 **Verdict: the core arrangement works over shared HTTP MCP. No worktree-aware
 bridge is needed when callers supply absolute file paths.** This is a fixture
-experiment, not an installed integration or a production-ready service.
+experiment. A separate private personal pilot is now installed for Solea; it is
+not a supported team deployment.
+
+The pilot runs outside application repos, starts at login, and requires bearer
+authentication on loopback HTTP. Actual Codex CLI, Claude Code CLI, and T3
+Claude sessions each successfully called `check_traits`; T3 also discovered the
+shared skill. The personal collection remains empty, so these checks prove
+connections, not code compliance.
 
 The default run uses fixture models. A separate opt-in provider probe now
 verifies direct Jev and subscription-authenticated Codex generation.
@@ -44,6 +51,7 @@ roles; they are not the real Codex, Claude Code, or T3 applications.
 8. Competing proposals with the same name and different requirements do not let
    one client's approval save the other's wording.
 9. All fixture application checkouts remain free of Traits files/dependencies.
+10. Missing or incorrect bearer tokens are rejected before MCP initialization.
 
 `server.mjs` composes the existing Traits toolkit, store, derivation approval
 logic, database and exclusive server lock with Effect's Streamable HTTP MCP
@@ -102,13 +110,14 @@ field shapes; this is not a general JSON Schema adapter.
 
 A separate live protocol smoke check also connected two concurrent sessions to
 the shared HTTP host in direct mode and verified real Jev findings for separate
-checkout/worktree files. This still does not establish actual agent app setup.
+checkout/worktree files. Actual agent setup was subsequently verified separately
+as described above.
 
 `SPIKE_PROVIDER_MODE=direct` selects these layers in the experimental HTTP host;
-it additionally requires `MONDASH_ENV_FILE`, `SPIKE_TRAITS_HOME` and
-`SPIKE_WORK_FOLDER`. No real agent has been registered with that host, and it
-must not be installed as a persistent service until authentication/lifecycle
-work is complete.
+it additionally requires `MONDASH_ENV_FILE`, `SPIKE_TRAITS_HOME`,
+`SPIKE_WORK_FOLDER`, and a private `TRAITS_MCP_TOKEN_FILE` containing at least
+32 characters. `TRAITS_MCP_PORT` selects a stable port; zero selects an
+ephemeral port. The same single-owner host serves the personal pilot.
 
 References:
 [Codex non-interactive authentication and output schemas](https://learn.chatgpt.com/docs/non-interactive-mode),
@@ -120,19 +129,21 @@ References:
 - Model quality or real-provider conflict reconciliation: the default run is
   deterministic, while the separate live probe covers a simple decision and
   structured trait generation only.
-- Real Codex/Claude Code/T3 connections, skill discovery or their native
-  elicitation forms. Only protocol clients and fallback approval were exercised.
-- An authenticated, persistent personal service, restart/recovery, approval
-  session isolation, or protection against hostile clients/TOCTOU file changes.
+- Native approval forms in every real app. Actual connections and skill
+  discovery were verified separately; approval behavior remains fixture-tested
+  until a real preference is proposed and approved.
+- Complete restart/recovery, approval session isolation, or protection against
+  hostile clients/TOCTOU file changes. The personal pilot uses authentication
+  and launchd supervision, not a multi-user service deployment.
 - Full sensitive-file or generated/dependency exclusion coverage. The narrow
   fixture guard is not a general file admission policy.
 - A packaged CLI/config interface or automatic agent setup.
 
-The server binds to a random localhost port and operates only on disposable
-fixture data. Do not point it at real application work until those gaps are
-addressed. Next step: complete personal-home/HTTP lifecycle and authentication,
-then verify actual clients. Direct Jev and Codex subscription access are now the
-selected provider route.
+The default experiment uses a random localhost port and disposable fixture data.
+The separate personal pilot uses a stable loopback endpoint and external
+personal storage. Direct Jev and Codex subscription access are the selected
+provider route. Continue validating through small, approved preferences before
+considering team use.
 
 ## Primary references
 
