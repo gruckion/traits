@@ -1,5 +1,5 @@
 {
-  "upstream": "1ccb701e467752dba098c65abb1589255746657c",
+  "upstreamBase": "1ccb701e467752dba098c65abb1589255746657c",
   "fixtureModels": true,
   "realAgentAppsTested": false,
   "scenarios": [
@@ -25,7 +25,7 @@
     },
     {
       "name": "file boundaries",
-      "detail": "outside paths, escaping symlinks, .env and ambiguous relative paths are rejected"
+      "detail": "outside paths, escaping symlinks, .env, relative paths and literal filenames with glob syntax are rejected"
     },
     {
       "name": "shared approval and persistence",

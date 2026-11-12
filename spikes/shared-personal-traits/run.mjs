@@ -208,7 +208,14 @@ try {
   rejected(env, /Credential/)
   const relative = await a.tool("check_traits", { include: ["input.ts"] })
   rejected(relative, /absolute/)
-  observe("file boundaries", "outside paths, escaping symlinks, .env and ambiguous relative paths are rejected")
+  await writeFile(join(tree, "literal[ab].ts"), "let literal = 'SELECTED LITERAL'\n")
+  await writeFile(join(tree, "literala.ts"), "let other = 'UNSELECTED MATCH'\n")
+  const glob = await a.tool("check_traits", { include: [join(tree, "literal[ab].ts")] })
+  rejected(glob, /glob/)
+  observe(
+    "file boundaries",
+    "outside paths, escaping symlinks, .env, relative paths and literal filenames with glob syntax are rejected"
+  )
 
   const proposal = {
     name: "fixture-second-rule",
@@ -252,7 +259,7 @@ try {
     join(here, "results.json"),
     JSON.stringify(
       {
-        upstream: git(resolve(here, "../.."), "rev-parse", "HEAD"),
+        upstreamBase: git(resolve(here, "../.."), "merge-base", "origin/main", "HEAD"),
         fixtureModels: true,
         realAgentAppsTested: false,
         scenarios: results

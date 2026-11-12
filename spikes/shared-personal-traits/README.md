@@ -34,8 +34,8 @@ roles; they are not the real Codex, Claude Code, or T3 applications.
 4. A new worktree created after startup works without Traits setup files.
 5. Each selected file's own Git checkout controls ignored/untracked behavior;
    tracked-but-ignored files stay eligible.
-6. Files outside the allowed folder, symlinks escaping it, `.env` files, and
-   ambiguous relative paths are rejected.
+6. Files outside the allowed folder, symlinks escaping it, `.env` files,
+   ambiguous relative paths, and paths containing glob syntax are rejected.
 7. A proposed fixture trait is absent until approval; after saving, another
    client's check sees the same new trait.
 8. Competing proposals with the same name and different requirements do not let
@@ -53,8 +53,11 @@ client. For the experiment, a middleware guard validates exact absolute paths
 and checks Git's file set in each file's actual checkout before dispatching the
 upstream check tool. The upstream single-checkout Git filter is disabled only
 inside this fixture server and replaced by that guard. Native globs and
-directories are deliberately unsupported. Files are supplied explicitly, so no
-automatic repository audit occurs.
+directories are deliberately unsupported; paths containing glob metacharacters
+are rejected, even when they name existing literal files. This prevents a
+validated literal filename from selecting a different file during upstream glob
+expansion. Files are supplied explicitly, so no automatic repository audit
+occurs.
 
 ## What this does not establish
 

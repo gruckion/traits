@@ -33,6 +33,7 @@ const guard = McpServer.middleware()((effect, options) => {
       if (!Array.isArray(includes)) throw new Error("Provide an explicit include array")
       for (const input of includes) {
         if (!isAbsolute(input)) throw new Error("Use absolute file paths in this shared-server spike")
+        if (/[*?[\]{}()\\]/.test(input)) throw new Error("Paths containing glob syntax are unsupported in this spike")
         const file = await realpath(input)
         const inside = relative(allowed, file)
         if (inside === ".." || inside.startsWith("../") || isAbsolute(inside)) {
