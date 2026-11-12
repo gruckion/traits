@@ -1,4 +1,4 @@
-// THROWAWAY: shared Traits HTTP host. Fixture models only; never configure for real work.
+// THROWAWAY: shared Traits HTTP host. Default fixture mode; direct mode is experimental.
 /* oxlint-disable effecttsgo/async-function, effecttsgo/process-env, effecttsgo/prefer-effect-array, effecttsgo/prefer-effect-string -- Throwaway host startup and exact-file admission intentionally use direct Node APIs; production integration must adopt the repo's Effect conventions. */
 import { execFileSync } from "node:child_process"
 import { realpath, stat } from "node:fs/promises"
@@ -22,6 +22,12 @@ import * as TraitStore from "../../traits/TraitStore.ts"
 const home = await realpath(process.env.SPIKE_TRAITS_HOME)
 const allowed = await realpath(process.env.SPIKE_WORK_FOLDER)
 const traitsDirectory = await realpath(resolve(home, "traits"))
+const mode = process.env.SPIKE_PROVIDER_MODE ?? "fixture"
+if (mode !== "fixture" && mode !== "direct") throw new Error("Unknown SPIKE_PROVIDER_MODE")
+const direct =
+  mode === "direct"
+    ? await (await import("./direct-providers.mjs")).load({ credentialsFile: process.env.MONDASH_ENV_FILE })
+    : undefined
 
 // Exact paths keep the spike small. Check Git's own file set separately for each
 // requested path, preserving ignored/untracked/tracked behavior across worktrees.
@@ -58,28 +64,34 @@ const guard = McpServer.middleware()((effect, options) => {
   }).pipe(Effect.andThen(effect))
 })
 
-const fixtures = Layer.effectContext(
+const hostServices = Layer.effectContext(
   Effect.gen(function* () {
-    const model = yield* DecisionModel.make({
-      decide: (options) =>
-        Effect.succeed({
-          // Intentionally deterministic: prove routing/storage, not AI judgment.
-          answers: Record.map(options.decisions, (question) => {
-            const label = question.criteria?.distinct !== undefined ? "distinct" : "violation"
-            return {
-              _tag: "Classify",
-              label,
-              probabilities: Record.map(question.criteria, (_, key) => (key === label ? 1 : 0))
-            }
-          }),
-          usage: { inputTokens: undefined, outputTokens: undefined }
-        })
-    })
+    const model =
+      direct !== undefined
+        ? yield* DecisionModel.DecisionModel
+        : yield* DecisionModel.make({
+            decide: (options) =>
+              Effect.succeed({
+                // Intentionally deterministic: prove routing/storage, not AI judgment.
+                answers: Record.map(options.decisions, (question) => {
+                  const label = question.criteria?.distinct !== undefined ? "distinct" : "violation"
+                  return {
+                    _tag: "Classify",
+                    label,
+                    probabilities: Record.map(question.criteria, (_, key) => (key === label ? 1 : 0))
+                  }
+                }),
+                usage: { inputTokens: undefined, outputTokens: undefined }
+              })
+          })
     const limit = yield* Semaphore.make(4)
-    const language = yield* LanguageModel.make({
-      generateText: () => Effect.die("Language generation is outside this fixture spike"),
-      streamText: () => Effect.die("Language generation is outside this fixture spike")
-    })
+    const language =
+      direct !== undefined
+        ? yield* LanguageModel.LanguageModel
+        : yield* LanguageModel.make({
+            generateText: () => Effect.die("Language generation is outside this fixture spike"),
+            streamText: () => Effect.die("Language generation is outside this fixture spike")
+          })
     return Context.make(DecisionModel.DecisionModel, model).pipe(
       Context.add(LanguageModel.LanguageModel, language),
       Context.add(ProjectPaths, { projectRoot: home, traitsDirectory }),
@@ -92,12 +104,12 @@ const fixtures = Layer.effectContext(
       })
     )
   })
-)
+).pipe(direct !== undefined ? Layer.provide(direct.layer) : (layer) => layer)
 
 const registrations = toolkit.pipe(
   Layer.provide(TraitStore.layer),
   Layer.provideMerge(Layer.effectDiscard(TraitProjectLock.acquire)),
-  Layer.provideMerge(fixtures),
+  Layer.provideMerge(hostServices),
   Layer.provideMerge(TraitDatabase.layerFile(resolve(home, "traits.sqlite")))
 )
 
@@ -108,8 +120,7 @@ const routes = McpServer.layerHttp({
   protocols: [McpProtocol.v2025_11_25],
   allowSessionTermination: true,
   registrations: Layer.merge(registrations, guard.layerGlobal),
-  instructions:
-    "THROWAWAY SPIKE with fixture models. All clients share traits. check_traits requires exact absolute paths in the allowed work folder; each file's own Git ignore rules are enforced. Never claim model quality was tested."
+  instructions: `EXPERIMENTAL SPIKE using ${mode === "fixture" ? "fixture models" : "direct Jev and the Codex subscription"}. All clients share traits. check_traits requires exact absolute paths in the allowed work folder; each file's own Git ignore rules are enforced. This is not an installed production integration.`
 })
 
 const server = HttpRouter.serve(routes, { disableLogger: true, disableListenLog: true }).pipe(

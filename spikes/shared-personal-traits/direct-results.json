@@ -1,0 +1,10 @@
+{
+  "decisionProvider": "typesafe-direct",
+  "configuredDecisionModel": "jev-latest",
+  "generationProvider": "codex-cli-chatgpt-login",
+  "generationModel": "gpt-6.1-sol",
+  "jevDecisionPassed": true,
+  "codexStructuredOutputPassed": true,
+  "actualTraitSchemaPassed": true,
+  "realAgentAppsConnected": false
+}

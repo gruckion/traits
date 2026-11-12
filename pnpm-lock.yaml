@@ -179,6 +179,9 @@ catalogs:
     '@effect/ai-openrouter':
       specifier: ^4.1.2
       version: 4.1.2
+    '@effect/ai-typesafe':
+      specifier: 4.1.2
+      version: 4.1.2
     '@effect/atom-react':
       specifier: ^4.1.2
       version: 4.1.2
@@ -263,6 +266,9 @@ importers:
         specifier: 'catalog:'
         version: 3.0.3
       '@effect/ai-openrouter':
+        specifier: 'catalog:'
+        version: 4.1.2(effect@4.1.2)
+      '@effect/ai-typesafe':
         specifier: 'catalog:'
         version: 4.1.2(effect@4.1.2)
       '@effect/platform-node':
@@ -622,6 +628,11 @@ packages:
 
   '@effect/ai-openrouter@4.1.2':
     resolution: {integrity: sha512-iWNUPM4I8t6PZIDj7biJHZF7GUaVyevIiXNOyrd7vhZ4eYeuMyIimuELH+qwPt0AKnpU72mkY11ngBranM7/Lw==}
+    peerDependencies:
+      effect: ^4.1.2
+
+  '@effect/ai-typesafe@4.1.2':
+    resolution: {integrity: sha512-k4DC2CD8nvf0bioe2/VxA4KKyUNVgv9CFcejhl9Hrnci3cpTdVnrYgdVPL/VxnxfYCVGlCQO/xTzO1g+nT7Yqg==}
     peerDependencies:
       effect: ^4.1.2
 
@@ -3017,6 +3028,10 @@ snapshots:
   '@drizzle-team/brocli@0.12.1': {}
 
   '@effect/ai-openrouter@4.1.2(effect@4.1.2)':
+    dependencies:
+      effect: 4.1.2
+
+  '@effect/ai-typesafe@4.1.2(effect@4.1.2)':
     dependencies:
       effect: 4.1.2
 

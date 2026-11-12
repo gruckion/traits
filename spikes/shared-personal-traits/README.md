@@ -8,6 +8,9 @@ in those checkouts?
 bridge is needed when callers supply absolute file paths.** This is a fixture
 experiment, not an installed integration or a production-ready service.
 
+The default run uses fixture models. A separate opt-in provider probe now
+verifies direct Jev and subscription-authenticated Codex generation.
+
 ## Run
 
 From the fork root, using its pinned pnpm version:
@@ -45,8 +48,9 @@ roles; they are not the real Codex, Claude Code, or T3 applications.
 `server.mjs` composes the existing Traits toolkit, store, derivation approval
 logic, database and exclusive server lock with Effect's Streamable HTTP MCP
 transport. It does not remove or bypass the store ownership lock: there is only
-one owner. All new behavior is isolated in this spike; upstream source,
-manifests and lockfiles are unchanged.
+one owner. New runtime behavior is isolated in this spike; upstream source is
+unchanged. The root development manifest/catalog/lockfile add the direct
+TypeSafe provider at 4.1.2, matching existing Effect 4.1.2 without upgrading it.
 
 The shared server's working directory cannot serve as the Git root for every
 client. For the experiment, a middleware guard validates exact absolute paths
@@ -59,10 +63,63 @@ validated literal filename from selecting a different file during upstream glob
 expansion. Files are supplied explicitly, so no automatic repository audit
 occurs.
 
+## Direct providers and subscription generation
+
+```sh
+MONDASH_ENV_FILE=/absolute/path/to/mondash/.env \
+  node spikes/shared-personal-traits/probe-direct.mjs
+node spikes/shared-personal-traits/probe-codex-guards.mjs
+```
+
+The opt-in live probe reads `TYPESAFE_API_KEY` and `TYPESAFE_MODEL` from the
+explicit local file. It does not copy, print or commit the key or load the other
+environment values into the process. It uses the direct TypeSafe provider, not
+OpenRouter. The successful live probe selected `jev-latest` and then generated a
+schema-validated Traits object through `gpt-6.1-sol`. `direct-results.json`
+contains only non-secret verification summaries.
+
+The generation adapter invokes `codex exec` with the existing ChatGPT login,
+rejects API-key login and omits API-key/access-token variables from its child
+environment. Codex manages its own authentication; no OAuth tokens are
+extracted. Each invocation is ephemeral, uses a temporary working directory,
+ignores user config/rules, disables shell/apps/plugins/web search, and rejects
+responses that report tool execution. It uses a strict output schema and
+restores omitted optional fields before Effect validates the result. This is a
+narrow, non-streaming text/structured-output adapter, not a complete Codex SDK.
+
+The offline guard probe exercises API-key login rejection before generation,
+child credential isolation, optional-field restoration and required-null
+preservation with a fake CLI. The live probe separately exercises real provider
+authentication and generation. Live probes consume Jev API usage and Codex
+subscription allowance; they are not part of the default fixture run.
+
+Cancellation and input-pipe failure are checked against a deliberately
+SIGTERM-resistant fake CLI. The adapter waits for process closure and escalates
+to SIGKILL before ending a cancelled/failed call, then removes its temporary
+directory. The cancellation regression reproduced a surviving child before the
+fix. Schema normalization is limited to the tested Traits object/array/optional
+field shapes; this is not a general JSON Schema adapter.
+
+A separate live protocol smoke check also connected two concurrent sessions to
+the shared HTTP host in direct mode and verified real Jev findings for separate
+checkout/worktree files. This still does not establish actual agent app setup.
+
+`SPIKE_PROVIDER_MODE=direct` selects these layers in the experimental HTTP host;
+it additionally requires `MONDASH_ENV_FILE`, `SPIKE_TRAITS_HOME` and
+`SPIKE_WORK_FOLDER`. No real agent has been registered with that host, and it
+must not be installed as a persistent service until authentication/lifecycle
+work is complete.
+
+References:
+[Codex non-interactive authentication and output schemas](https://learn.chatgpt.com/docs/non-interactive-mode),
+[Codex subscription sign-in](https://learn.chatgpt.com/docs/auth?surface=cli),
+[TypeSafe System One API](https://docs.typesafe.ai/api/system-one.md).
+
 ## What this does not establish
 
-- Model quality, paid provider/API compatibility, or language generation:
-  classification is deterministic fixture output; generation fails explicitly.
+- Model quality or real-provider conflict reconciliation: the default run is
+  deterministic, while the separate live probe covers a simple decision and
+  structured trait generation only.
 - Real Codex/Claude Code/T3 connections, skill discovery or their native
   elicitation forms. Only protocol clients and fallback approval were exercised.
 - An authenticated, persistent personal service, restart/recovery, approval
@@ -73,8 +130,9 @@ occurs.
 
 The server binds to a random localhost port and operates only on disposable
 fixture data. Do not point it at real application work until those gaps are
-addressed. Next step: select providers/models, turn this into an explicit
-personal-home/HTTP mode, then verify actual clients and lifecycle behavior.
+addressed. Next step: complete personal-home/HTTP lifecycle and authentication,
+then verify actual clients. Direct Jev and Codex subscription access are now the
+selected provider route.
 
 ## Primary references
 

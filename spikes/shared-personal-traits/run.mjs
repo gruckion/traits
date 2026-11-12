@@ -147,7 +147,11 @@ try {
   await once(holder, "exit")
   observe("upstream baseline", "two independent servers cannot own the same trait directory")
 
-  const host = launch(join(here, "server.mjs"), [], { SPIKE_TRAITS_HOME: home, SPIKE_WORK_FOLDER: work })
+  const host = launch(join(here, "server.mjs"), [], {
+    SPIKE_TRAITS_HOME: home,
+    SPIKE_WORK_FOLDER: work,
+    SPIKE_PROVIDER_MODE: "fixture"
+  })
   const { url } = JSON.parse(await firstLine(host))
   const a = connect(url, "codex-fixture")
   const b = connect(url, "claude-code-fixture")

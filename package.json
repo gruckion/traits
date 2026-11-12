@@ -19,6 +19,7 @@
     "@changesets/changelog-github": "catalog:",
     "@changesets/cli": "catalog:",
     "@effect/ai-openrouter": "catalog:",
+    "@effect/ai-typesafe": "catalog:",
     "@effect/platform-node": "catalog:",
     "@effect/tsgo": "catalog:",
     "@types/node": "catalog:",
