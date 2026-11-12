@@ -1,15 +1,15 @@
 // THROWAWAY: shared Traits HTTP host. Default fixture mode; direct mode is experimental.
 /* oxlint-disable effecttsgo/async-function, effecttsgo/process-env, effecttsgo/prefer-effect-array, effecttsgo/prefer-effect-string -- Throwaway host startup and exact-file admission intentionally use direct Node APIs; production integration must adopt the repo's Effect conventions. */
 import { execFileSync } from "node:child_process"
-import { realpath, stat } from "node:fs/promises"
+import { readFile, realpath, stat } from "node:fs/promises"
 import { createServer } from "node:http"
-import { isAbsolute, relative, resolve, basename } from "node:path"
+import { isAbsolute, relative, resolve, basename, extname } from "node:path"
 
 import { NodeHttpServer, NodeRuntime, NodeServices } from "@effect/platform-node"
 import { Console, Context, Effect, Layer, Record, Semaphore } from "effect"
 import { DecisionModel, LanguageModel, McpProtocol, McpSchema, McpServer } from "effect/ai"
 import { Digest, SecureRandom } from "effect/crypto"
-import { HttpRouter, HttpServer } from "effect/http"
+import { HttpRouter, HttpServer, HttpServerRequest, HttpServerResponse } from "effect/http"
 import { Reactivity } from "effect/reactivity"
 
 import { ProjectPaths } from "../../traits/ProjectPaths.ts"
@@ -24,6 +24,57 @@ const allowed = await realpath(process.env.SPIKE_WORK_FOLDER)
 const traitsDirectory = await realpath(resolve(home, "traits"))
 const mode = process.env.SPIKE_PROVIDER_MODE ?? "fixture"
 if (mode !== "fixture" && mode !== "direct") throw new Error("Unknown SPIKE_PROVIDER_MODE")
+const tokenFile = process.env.TRAITS_MCP_TOKEN_FILE
+const token = tokenFile === undefined ? undefined : (await readFile(tokenFile, "utf8")).trim()
+if (mode === "direct" && (token === undefined || token.length < 32))
+  throw new Error("Direct mode requires a private MCP authentication token file")
+const port = Number(process.env.TRAITS_MCP_PORT ?? 0)
+if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error("Invalid MCP port")
+const privateSegments = new Set([
+  ".git",
+  "node_modules",
+  ".traits-personal",
+  ".cocoindex_code",
+  ".venv",
+  "venv",
+  "dist",
+  "build",
+  "coverage"
+])
+const sourceExtensions = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".py",
+  ".pyi",
+  ".go",
+  ".swift",
+  ".kt",
+  ".java",
+  ".json",
+  ".yaml",
+  ".yml",
+  ".toml",
+  ".md",
+  ".txt",
+  ".sql",
+  ".sh",
+  ".css",
+  ".scss",
+  ".html",
+  ".xml",
+  ".graphql",
+  ".gql",
+  ".prisma",
+  ".vue",
+  ".svelte",
+  ".rs",
+  ".rb",
+  ".proto"
+])
 const direct =
   mode === "direct"
     ? await (await import("./direct-providers.mjs")).load({ credentialsFile: process.env.MONDASH_ENV_FILE })
@@ -46,9 +97,20 @@ const guard = McpServer.middleware()((effect, options) => {
           throw new Error("File is outside the allowed work folder")
         }
         if (!(await stat(file)).isFile()) throw new Error("Select individual files, not directories or globs")
-        if (/^(\.env(?:\..*)?|credentials(?:\..*)?)$/.test(basename(file))) {
+        if (file.split("/").some((segment) => privateSegments.has(segment.toLowerCase())))
+          throw new Error("Private, dependency, generated and Git metadata paths are excluded")
+        if (
+          /^(\.env(?:\..*)?|\.npmrc|\.yarnrc(?:\.yml)?|credentials(?:\..*)?|id_(?:rsa|ed25519)(?:\..*)?)$/i.test(
+            basename(file)
+          )
+        ) {
           throw new Error("Credential files are excluded")
         }
+        if (
+          !sourceExtensions.has(extname(file).toLowerCase()) &&
+          !new Set(["Dockerfile", "Makefile", "Taskfile", ".gitignore"]).has(basename(file))
+        )
+          throw new Error("Only authored source, configuration and documentation files are eligible")
         const directory = resolve(file, "..")
         const root = execFileSync("git", ["-C", directory, "rev-parse", "--show-toplevel"], { encoding: "utf8" }).trim()
         const local = relative(root, file)
@@ -114,18 +176,30 @@ const registrations = toolkit.pipe(
 )
 
 const routes = McpServer.layerHttp({
-  name: "traits-shared-PROTOTYPE",
+  name: mode === "fixture" ? "traits-shared-PROTOTYPE" : "solea-personal-traits",
   version: "0.0.0",
   path: "/mcp",
   protocols: [McpProtocol.v2025_11_25],
   allowSessionTermination: true,
   registrations: Layer.merge(registrations, guard.layerGlobal),
-  instructions: `EXPERIMENTAL SPIKE using ${mode === "fixture" ? "fixture models" : "direct Jev and the Codex subscription"}. All clients share traits. check_traits requires exact absolute paths in the allowed work folder; each file's own Git ignore rules are enforced. This is not an installed production integration.`
+  instructions: `Personal Traits pilot using ${mode === "fixture" ? "fixture models" : "direct Jev and the Codex subscription"}. Applies only to work under ${allowed}. All agents and worktrees share the same preferences in ${traitsDirectory}. Use the installed traits skill for capture, exact-proposal approval and review workflow. check_traits requires explicit absolute source-file paths; no directories or globs. Each file's own Git ignore rules apply. Native elicitation is supported; if ApprovalRequired is returned, show the exact proposal and obtain approval before retrying approved:true. No trait is saved without approval. Do not add setup files or trait stores to application checkouts.`
 })
 
-const server = HttpRouter.serve(routes, { disableLogger: true, disableListenLog: true }).pipe(
-  Layer.provideMerge(NodeHttpServer.layer(createServer, { host: "127.0.0.1", port: 0 }))
+const authenticated = HttpRouter.middleware(
+  (httpEffect) =>
+    Effect.gen(function* () {
+      const request = yield* HttpServerRequest.HttpServerRequest
+      if (token !== undefined && request.headers.authorization !== `Bearer ${token}`)
+        return HttpServerResponse.empty({ status: 401 })
+      return yield* httpEffect
+    }),
+  { global: true }
 )
+
+const server = HttpRouter.serve(Layer.merge(routes, authenticated), {
+  disableLogger: true,
+  disableListenLog: true
+}).pipe(Layer.provideMerge(NodeHttpServer.layer(createServer, { host: "127.0.0.1", port })))
 
 Effect.gen(function* () {
   const services = yield* Layer.build(server)

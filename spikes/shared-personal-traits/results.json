@@ -8,6 +8,10 @@
       "detail": "two independent servers cannot own the same trait directory"
     },
     {
+      "name": "HTTP authentication",
+      "detail": "missing or incorrect bearer credentials are rejected before MCP initialization"
+    },
+    {
       "name": "shared HTTP sessions",
       "detail": "three independent MCP clients connect to one unchanged trait collection"
     },

@@ -58,7 +58,7 @@ const firstLine = (child) =>
     })
   })
 
-function connect(url, name) {
+function connect(url, name, token) {
   let id = 0
   let session
   const request = async (method, params = {}, notification = false) => {
@@ -67,6 +67,7 @@ function connect(url, name) {
       headers: {
         "content-type": "application/json",
         accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
         ...(session ? { "mcp-session-id": session, "mcp-protocol-version": "2025-11-25" } : {})
       },
       body: JSON.stringify({ jsonrpc: "2.0", ...(notification ? {} : { id: ++id }), method, params }),
@@ -147,15 +148,27 @@ try {
   await once(holder, "exit")
   observe("upstream baseline", "two independent servers cannot own the same trait directory")
 
+  const token = "fixture-token-long-enough-for-authenticated-mcp"
+  const tokenFile = join(home, "mcp-token")
+  await writeFile(tokenFile, token, { mode: 0o600 })
   const host = launch(join(here, "server.mjs"), [], {
     SPIKE_TRAITS_HOME: home,
     SPIKE_WORK_FOLDER: work,
-    SPIKE_PROVIDER_MODE: "fixture"
+    SPIKE_PROVIDER_MODE: "fixture",
+    TRAITS_MCP_TOKEN_FILE: tokenFile
   })
   const { url } = JSON.parse(await firstLine(host))
-  const a = connect(url, "codex-fixture")
-  const b = connect(url, "claude-code-fixture")
-  const c = connect(url, "t3-fixture")
+  for (const authorization of [undefined, "Bearer incorrect"]) {
+    const denied = await fetch(url, {
+      method: "POST",
+      headers: authorization === undefined ? {} : { Authorization: authorization }
+    })
+    assert.equal(denied.status, 401)
+  }
+  observe("HTTP authentication", "missing or incorrect bearer credentials are rejected before MCP initialization")
+  const a = connect(url, "codex-fixture", token)
+  const b = connect(url, "claude-code-fixture", token)
+  const c = connect(url, "t3-fixture", token)
   await Promise.all([a.init(), b.init(), c.init()])
   for (const client of [a, b, c]) {
     const listed = await client.request("tools/list")
