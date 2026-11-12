@@ -1,0 +1,43 @@
+{
+  "upstream": "1ccb701e467752dba098c65abb1589255746657c",
+  "fixtureModels": true,
+  "realAgentAppsTested": false,
+  "scenarios": [
+    {
+      "name": "upstream baseline",
+      "detail": "two independent servers cannot own the same trait directory"
+    },
+    {
+      "name": "shared HTTP sessions",
+      "detail": "three independent MCP clients connect to one unchanged trait collection"
+    },
+    {
+      "name": "concurrent source selection",
+      "detail": "main checkout, worktree and separate repo return their own unsaved content and SHA-256 snapshot"
+    },
+    {
+      "name": "new worktree",
+      "detail": "a worktree created after server startup works with no Traits files or configuration"
+    },
+    {
+      "name": "Git filtering",
+      "detail": "ignored files rejected; tracked-but-ignored and new untracked source files remain eligible"
+    },
+    {
+      "name": "file boundaries",
+      "detail": "outside paths, escaping symlinks, .env and ambiguous relative paths are rejected"
+    },
+    {
+      "name": "shared approval and persistence",
+      "detail": "unapproved fixture trait is absent; approved save is immediately visible to another client"
+    },
+    {
+      "name": "competing proposals",
+      "detail": "one client's different proposal cannot turn another client's approval into an unintended save"
+    },
+    {
+      "name": "checkout footprint",
+      "detail": "no traits.ts, .agents directory, dependencies or setup files in any fixture checkout"
+    }
+  ]
+}
